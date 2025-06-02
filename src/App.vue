@@ -178,7 +178,7 @@
       class="z-20 bg-white -mt-8 p-8 shadow-lg w-full max-w-[70%] mx-auto text-left rounded-b-lg">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
         <div>
-          <h3 class="text-xl font-semibold mb-2">Registreerimistasu <span class="float-right">–</span></h3>
+          <h3 class="text-xl font-semibold mb-2">Registreerimistasu <span class="float-right">{{ vehicleData.regFee }} €</span></h3>
           <p class="text-sm text-gray-700">
             Registreerimistasu makstakse sõiduki registreerimisel liiklusregistrisse või sõiduki esimesel
             omanikuvahetusel.
@@ -188,7 +188,7 @@
           </p>
         </div>
         <div>
-          <h3 class="text-xl font-semibold mb-2">Aastamaks <span class="float-right">–</span></h3>
+          <h3 class="text-xl font-semibold mb-2">Aastamaks <span class="float-right">{{vehicleData.yearFee}} €</span></h3>
           <p class="text-sm text-gray-700">
             Aastamaksu tasutakse kaks korda aastas. Aastamaks koosneb baasosast, CO₂ ja massi komponendist.
             Mootorsõidukimaksust tasutakse 50 protsenti 15. juuniks ja 50 protsenti 15. detsembriks. Maks väheneb
@@ -216,16 +216,16 @@
           </thead>
           <tbody class="bg-gray-100">
             <tr>
-              <td class="p-3 border-b border-gray-300">{{ regNumber || '-' }}</td>
-              <td class="p-3 border-b border-gray-300">{{ car || '-' }}</td>
-              <td class="p-3 border-b border-gray-300">{{ firstRegYear || '-' }}</td>
-              <td class="p-3 border-b border-gray-300">{{ fuel || '-' }}</td>
-              <td class="p-3 border-b border-gray-300">{{ power || '-' }}</td>
-              <td class="p-3 border-b border-gray-300">{{ grossWeight || '-' }}</td>
-              <td class="p-3 border-b border-gray-300">{{ co2Standard || '-' }}</td>
-              <td class="p-3 border-b border-gray-300">{{ co2 || '-' }}</td>
-              <td class="p-3 border-b border-gray-300">{{ registrationFee || '–' }} €</td>
-              <td class="p-3 border-b border-gray-300">{{ anualFee || '–' }} €</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.regNr || '-' }}</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.markAndModel || '-' }}</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.year || '-' }}</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.fuel || '-' }}</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.power || '-' }}</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.weight || '-' }}</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.co2norm || '-' }}</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.co2gkg || '-' }}</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.regFee || '–' }} €</td>
+              <td class="p-3 border-b border-gray-300">{{ vehicleData.yearFee || '–' }} €</td>
             </tr>
           </tbody>
         </table>
@@ -240,7 +240,21 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import axios from 'axios'
 
+
+const vehicleData = ref({
+  regNr: '',
+  markAndModel: '',
+  year: '',
+  fuel: '',
+  power: '',
+  weight: '',
+  co2norm: '',
+  co2gkg: '',
+  regFee: '',
+  yearFee: ''
+})
 const tab = ref('reg')
 const regNumber = ref('')
 const vehicleType = ref('')
@@ -264,23 +278,37 @@ const canCalculate = computed(() => {
   }
 })
 
-const calculate = () => {
+
+
+const calculate = async () => {
   if (canCalculate.value) {
     showResults.value = true
-    console.log('Calculating...', {
-      tab: tab.value,
-      regNumber: regNumber.value,
-      vehicleType: vehicleType.value,
-      firstRegYear: firstRegYear.value,
-      engineType: engineType.value,
-      co2Standard: co2Standard.value,
-      co2: co2.value,
-      fuel: fuel.value,
-      power: power.value,
-      emptyWeight: emptyWeight.value,
-      grossWeight: grossWeight.value,
-      engineVolume: engineVolume.value,
-    })
+    if( tab.value === 'reg') {
+      try {
+        const response = await axios.get(`https://automakskalkulaator.ee/wp-json/custom-api/v1/fetch-vehicle?regnr=${regNumber.value}`)
+        const data = response.data;
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = response.data['history_vehicleContainer_html'];
+        const row = tempDiv.querySelector('table tr:nth-of-type(2)');
+        const getText = (selector) => row.querySelector(selector)?.textContent?.trim() ?? null;
+
+        vehicleData.value = {
+          regNr: getText('.regNr'),
+          markAndModel: getText('.markAndModel'),
+          year: parseInt(getText('.year')),
+          fuel: getText('.fuel'),
+          power: getText('.power'),
+          weight: getText('.weight'),
+          co2norm: getText('.co2norm'),
+          co2gkg: parseInt(getText('.co2gkg')),
+          regFee: parseFloat(getText('.regFee')?.replace(/[^\d,.-]/g, '').replace(',', '.')),
+          yearFee: parseFloat(getText('.yearFee')?.replace(/[^\d,.-]/g, '').replace(',', '.')),
+        };
+      } catch(er) {
+        console.error('Error fetching vehicle data:', er)
+      }
+    }
   }
 }
 </script>
