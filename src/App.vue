@@ -1,5 +1,5 @@
 <template>
-  <div class="relative flex flex-col min-h-screen w-screen overflow-y-auto px-4 md:px-80 pb-40">
+  <div class="relative flex flex-col min-h-screen w-screen overflow-y-auto text-wrap px-4 md:px-80 pb-40">
     <img src="./assets/automaksukalkulaator.webp" alt="Background"
       class="absolute inset-0 w-full h-full object-cover z-[-1]" />
 
@@ -175,7 +175,7 @@
     </main>
 
     <div v-if="showResults"
-      class="z-20 bg-white mt-0 p-8 shadow-lg w-full max-w-[70%] mx-auto text-left border-t border-gray-200">
+      class="z-20 bg-white -mt-8 p-8 shadow-lg w-full max-w-[70%] mx-auto text-left rounded-b-lg">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
         <div>
           <h3 class="text-xl font-semibold mb-2">Registreerimistasu <span class="float-right">–</span></h3>
@@ -198,7 +198,7 @@
         </div>
       </div>
 
-      <div class="overflow-auto max-h-[300px] border border-gray-300 rounded-lg">
+      <div class="max-h-[300px] border border-gray-300 rounded-lg">
         <table class="min-w-full text-sm border-separate border-spacing-0">
           <thead class="bg-blue-900 text-white">
             <tr>
@@ -232,7 +232,7 @@
       </div>
     </div>
 
-    <footer class="z-20 absolute bottom-0 w-full text-xs text-black text-center bg-white bg-opacity-50 p-8">
+    <footer class="z-20 absolute bottom-0 left-0 w-full text-xs text-black text-center bg-white bg-opacity-50 p-8 ">
       Copyright © 2025 Automaksukalkulaator
     </footer>
   </div>
